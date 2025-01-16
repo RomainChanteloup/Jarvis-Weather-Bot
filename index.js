@@ -1,6 +1,7 @@
 import { config } from 'dotenv';
 import { Client, Events, GatewayIntentBits } from 'discord.js';
 import https from 'https';
+import { generateCharts } from './graph_gen.js';
 
 config(); // Charge les variables d'environnement
 
@@ -35,35 +36,20 @@ async function fetchWeatherData() {
     });
 }
 
-// Fonction pour extraire la température de demain
-function getTomorrowTemperature(weatherData) {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowDate = tomorrow.toISOString().split('T')[0];
-    
-    const timeIndex = weatherData.hourly.time.findIndex(time => time.startsWith(tomorrowDate));
-    if (timeIndex === -1) return null;
-
-    // Calcul de la moyenne des températures pour demain
-    const temperatures = weatherData.hourly.temperature_2m.slice(timeIndex, timeIndex + 24);
-    const avgTemp = temperatures.reduce((sum, temp) => sum + temp, 0) / temperatures.length;
-    
-    return avgTemp.toFixed(1);
-}
-
-// Fonction pour formater le message météo
-function formatWeatherMessage(temperature) {
-    return `🌡️ La température moyenne à Marseille demain sera de ${temperature}°C`;
-}
-
 // Configuration du client Discord
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 // Fonction pour envoyer un message dans le canal
-async function sendMessageToChannel(channel, message) {
+async function sendMessageToChannel(channel, weatherData) {
     try {
-        await channel.send(message);
+        const buffer = await generateCharts(weatherData);
+        console.log('Envoit du graphique dans le channel');
+        // envoit du message avec le graphique
+        await channel.send('Voici les prévisions météo pour les 16 prochains jours 🌅:', { files: [buffer] });
         console.log('Message envoyé avec succès');
+        await channel.send( { files: [buffer] })
+        console.log('Image envoyée avec succès');
+        return;
     } catch (error) {
         console.error('Erreur envoi message:', error);
     }
@@ -73,11 +59,7 @@ async function sendMessageToChannel(channel, message) {
 async function sendWeatherUpdate(channel) {
     try {
         const weatherData = await fetchWeatherData();
-        const temperature = getTomorrowTemperature(weatherData);
-        if (temperature) {
-            const message = formatWeatherMessage(temperature);
-            await sendMessageToChannel(channel, message);
-        }
+        return await sendMessageToChannel(channel, weatherData);
     } catch (error) {
         console.error('Erreur weather update:', error);
     }
@@ -90,8 +72,12 @@ client.on(Events.ClientReady, async (readyClient) => {
     const devChannel = readyClient.channels.cache.find(channel => channel.name === 'dev');
     if (devChannel) {
         await sendWeatherUpdate(devChannel);
+        client.destroy();
+        return;
     } else {
         console.error('Canal dev non trouvé');
+        client.destroy();
+        return;
     }
 });
 
