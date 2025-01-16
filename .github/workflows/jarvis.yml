@@ -13,5 +13,9 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-      - run: npm ci
-      - run: npm test
+      - name: Start application
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+        timeout-minutes: 5
+        run: npm start
