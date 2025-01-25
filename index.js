@@ -13,8 +13,10 @@ const WEATHER_CONFIG = {
 };
 
 // Fonction pour construire l'URL de l'API météo
+// A modifié comme vous le souhaitez
 function buildWeatherUrl() {
-    return `${WEATHER_CONFIG.baseUrl}?latitude=${WEATHER_CONFIG.latitude}&longitude=${WEATHER_CONFIG.longitude}&hourly=temperature_2m,precipitation_probability,wind_speed_10m&forecast_days=16`;
+    return `${WEATHER_CONFIG.baseUrl}?latitude=${WEATHER_CONFIG.latitude}&longitude=${WEATHER_CONFIG.longitude}`+
+    '&hourly=temperature_2m,precipitation_probability,wind_speed_10m&start_date=2025-02-01&end_date=2025-02-03';
 }
 
 // Fonction pour récupérer les données météo
