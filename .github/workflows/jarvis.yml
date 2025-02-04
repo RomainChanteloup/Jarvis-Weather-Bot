@@ -2,8 +2,8 @@ name: Jarvis Workflow
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 8 * * *'  # 9h UTC+1 correspond à 8h UTC
+  # schedule:
+  #   - cron: '0 8 * * *'  # 9h UTC+1 correspond à 8h UTC
   push:
     branches:
       - main
